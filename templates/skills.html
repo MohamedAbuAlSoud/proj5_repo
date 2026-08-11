@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-bottom: 25px;">
+    <h2>💡 Available Skills Catalog</h2>
+    <p>Click on any skill badge below to immediately generate course recommendations tailored to that skill:</p>
+</div>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
+    {% for skill in skills %}
+        <a href="/recommendation?query={{ skill }}" style="text-decoration: none; color: inherit;">
+            <div style="background: #ffffff; border: 1px solid #e0e0e0; border-left: 4px solid #2b6cb0; padding: 15px; border-radius: 8px; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer;">
+                <h4 style="margin: 0 0 5px 0; color: #2d3748;">{{ skill }}</h4>
+                <span style="font-size: 0.85em; color: #4a5568;">⚡ Find Matching Courses &rarr;</span>
+            </div>
+        </a>
+    {% endfor %}
+</div>
+{% endblock %}

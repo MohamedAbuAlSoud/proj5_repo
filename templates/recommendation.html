@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="mb-4"> Semantic Course Recommendations</h2>
+
+    <div class="card p-4 shadow-sm mb-4">
+        <form method="GET" action="/recommendation">
+            <div class="mb-3">
+                <label for="user_id" class="form-label fw-bold">Select a User Profile</label>
+                <select name="user_id" id="user_id" class="form-select" onchange="this.form.submit()">
+                    <option value="">-- Select a User --</option>
+                    {% for u in users %}
+                        <option value="{{ u.id }}" {% if selected_user_id|string == u.id|string %}selected{% endif %}>
+                            {{ u.name }} ({{ u.email }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="text-muted my-2 fw-bold">OR search using natural language or skills:</div>
+
+            <div class="input-group mb-3">
+                <input type="text" name="query" class="form-control" placeholder="e.g., backend web developer, CSS, or pandas..." value="{{ user_query }}">
+                <button type="submit" class="btn btn-primary">Search</button>
+            </div>
+        </form>
+
+        <div class="mt-2">
+            <small class="text-muted fw-bold">Or pick a suggested skill:</small>
+            {% for s in skills[:6] %}
+                <a href="/recommendation?query={{ s }}" class="badge bg-secondary text-decoration-none ms-1">{{ s }}</a>
+            {% endfor %}
+        </div>
+    </div>
+
+    {% if results and results.recommended_courses %}
+        
+        <div class="alert alert-info shadow-sm mb-4">
+            <strong>Target Skills Analyzed:</strong> 
+            {% for sk in results.extracted_skills %}
+                <span class="badge bg-primary ms-1">{{ sk }}</span>
+            {% endfor %}
+        </div>
+
+        <h3 class="mb-3"> Recommended Courses</h3>
+        <div class="row">
+            {% for course in results.recommended_courses %}
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+                            <span class="badge bg-warning text-dark">{{ course.score_percentage }}% Match</span>
+                            <small>{{ course.category }}</small>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title text-primary">{{ course.title }}</h5>
+                            <p class="card-text text-muted" style="font-size: 0.9rem;">{{ course.description }}</p>
+                            
+                            <hr>
+                            
+                            <p class="mb-1"><strong>Matched Skills:</strong></p>
+                            <div>
+                                {% if course.matched_skills %}
+                                    {% for ms in course.matched_skills %}
+                                        <span class="badge bg-success ms-1">{{ ms }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted" style="font-size: 0.85rem;">None</span>
+                                {% endif %}
+                            </div>
+
+                            <p class="mb-1 mt-2"><strong>Skill Gap to Learn:</strong></p>
+                            <div>
+                                {% if course.missing_skills %}
+                                    {% for sk_gap in course.missing_skills %}
+                                        <span class="badge bg-danger ms-1">{{ sk_gap }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="badge bg-secondary">No Skill Gap!</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="card-footer bg-light text-muted" style="font-size: 0.8rem;">
+                            <strong>Prerequisites:</strong> {{ course.prerequisites or 'None' }}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        {% if results.learning_path %}
+            <div class="card shadow-sm p-4 mt-4 bg-light">
+                <h4 class="mb-3 text-success"> Multi-Agent Learning Path Route</h4>
+                <div class="list-group">
+                    {% for step in results.learning_path %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">Step {{ step.step }}: {{ step.title }}</h6>
+                                <small class="text-muted">Prerequisites: {{ step.prerequisites }}</small>
+                            </div>
+                            <span class="badge bg-info text-dark">{{ step.difficulty }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+    {% elif user_query or selected_user_id %}
+        <div class="alert alert-warning text-center mt-4">
+            No matching courses found for your request.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
